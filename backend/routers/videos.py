@@ -450,7 +450,7 @@ async def get_summary(video_id: int, user: dict = Depends(get_current_user)):
         import json
         import re
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        model = genai.GenerativeModel("gemini-3-flash-preview")
+        model = genai.GenerativeModel("gemini-3.5-flash")
         
         prompt = (
             "You are an elite video content analyst. Analyze the following video transcript "
@@ -467,13 +467,13 @@ async def get_summary(video_id: int, user: dict = Depends(get_current_user)):
         )
 
         
-        response = model.generate_content(prompt)
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                response_mime_type="application/json",
+            )
+        )
         raw = response.text.strip()
-        
-        # Clean up possible markdown formatting
-        match = re.search(r"\{.*\}", raw, re.DOTALL)
-        if match:
-            raw = match.group(0)
             
         summary_data = json.loads(raw)
         

@@ -328,7 +328,7 @@ def run_video_pipeline(self, video_id: int, r2_url: str, user_id: str = "anonymo
                     print(f"[Pipeline] Generating global summary via Gemini...")
                     import google.generativeai as genai
                     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-                    model = genai.GenerativeModel("gemini-3-flash-preview")
+                    model = genai.GenerativeModel("gemini-3.5-flash")
                     prompt = (
                         "You are an elite video content analyst. Analyze the following video transcript "
                         "and generate a comprehensive, high-density global summary.\n\n"
@@ -342,11 +342,13 @@ def run_video_pipeline(self, video_id: int, r2_url: str, user_id: str = "anonymo
                         "The values MUST be the detailed Markdown-formatted summary string in that specific language.\n\n"
                         f"Transcript:\n{transcript_text[:15000]}"
                     )
-                    response = model.generate_content(prompt)
+                    response = model.generate_content(
+                        prompt,
+                        generation_config=genai.types.GenerationConfig(
+                            response_mime_type="application/json",
+                        )
+                    )
                     raw = response.text.strip()
-                    match = re.search(r"\{.*\}", raw, re.DOTALL)
-                    if match:
-                        raw = match.group(0)
                     summary_data = json.loads(raw)
                     
                     # Save to Firestore
